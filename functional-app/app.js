@@ -17,6 +17,16 @@ const state = {
 const inputs = () => [...document.querySelectorAll("input[name], textarea[name]")];
 const $ = (selector) => document.querySelector(selector);
 
+async function readJsonBody(response) {
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { error: `Unexpected response from the server (status ${response.status})` };
+  }
+}
+
 function openDb() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -244,7 +254,7 @@ async function transcribeAudio() {
     formData.append("audio", state.audioBlob, `visit-recording.${extension}`);
 
     const response = await fetch("/api/transcribe", { method: "POST", body: formData });
-    const result = await response.json();
+    const result = await readJsonBody(response);
     if (!response.ok) throw new Error(result.error || "Transcription failed");
 
     $("#transcript").value = result.text || "";
@@ -320,7 +330,7 @@ async function publishNote() {
         html: buildHubSpotHtml(),
       }),
     });
-    const result = await response.json();
+    const result = await readJsonBody(response);
     if (!response.ok) throw new Error(result.error || "Publish failed");
 
     $("#publish-feedback").textContent = `Published HubSpot note ${result.noteId}`;
