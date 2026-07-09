@@ -148,7 +148,13 @@ async function loadDraft() {
 }
 
 async function clearDraft() {
-  setVisitData({});
+  for (const input of inputs()) {
+    if (input.type === "checkbox") {
+      input.checked = false;
+    } else {
+      input.value = "";
+    }
+  }
   document.querySelector("[name='visitDate']").valueAsDate = new Date();
   state.audioBlob = null;
   $("#audio-playback").removeAttribute("src");
