@@ -1,5 +1,6 @@
 import { app } from "@azure/functions";
 import { isAuthError, requireAuthenticatedUser } from "../shared/auth.js";
+import { readJsonBody } from "../shared/http.js";
 
 const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
 
@@ -40,9 +41,9 @@ app.http("transcribe", {
         body: form,
       });
 
-      const result = await response.json();
+      const { data: result, raw } = await readJsonBody(response);
       if (!response.ok) {
-        context.error("OpenAI transcription failed", result);
+        context.error("OpenAI transcription failed", raw || result);
         return {
           status: response.status,
           jsonBody: { error: result.error?.message || "OpenAI transcription failed" },

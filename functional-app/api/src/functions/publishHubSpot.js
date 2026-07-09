@@ -1,5 +1,6 @@
 import { app } from "@azure/functions";
 import { isAuthError, requireAuthenticatedUser } from "../shared/auth.js";
+import { readJsonBody } from "../shared/http.js";
 
 app.http("publishHubSpot", {
   methods: ["POST"],
@@ -49,9 +50,9 @@ app.http("publishHubSpot", {
         body: JSON.stringify(noteBody),
       });
 
-      const result = await response.json();
+      const { data: result, raw } = await readJsonBody(response);
       if (!response.ok) {
-        context.error("HubSpot publish failed", result);
+        context.error("HubSpot publish failed", raw || result);
         return {
           status: response.status,
           jsonBody: { error: result.message || "HubSpot publish failed" },
